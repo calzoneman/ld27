@@ -39,16 +39,16 @@ if __name__ == "__main__":
         keys = defaultdict(lambda: False)
         clock = pygame.time.Clock()
 
-        world = World((100, 100), default=Tile.GRASS)
+        world = World((50, 50), default=Tile.GRASS)
         px, py = world.random_position()
         player = Player((px, py), loadimage("player.png"))
         world.add_entity(player)
         MOVE_SPEED = 3
-        for i in range(5):
+        for i in range(1):
             world.spawn_clock()
-        for i in range(10):
+        for i in range(3):
             world.spawn_fastenemy()
-        for i in range(10):
+        for i in range(5):
             world.spawn_slowenemy()
 
         ticks = 0
@@ -126,6 +126,17 @@ if __name__ == "__main__":
             msg = regfont.render("Score: {}".format(player.score), 1,
                                  WHITE, BLACK)
             blitfont(screen, msg, (0, 3*msg.get_height()))
+
+            if world.timer < 180 and (ticks / 20) % 2 == 0:
+                msg = regfont.render("Time's running out!", 1, WHITE, BLACK)
+                blitfont(screen, msg, (SWIDTH/2, msg.get_height()/2),
+                                       align="CENTER")
+
+
+            if not started:
+                msg = regfont.render("Press Space to start", 1,
+                                     WHITE, BLACK)
+                blitfont(screen, msg, (SWIDTH/2, SHEIGHT/2), align="CENTER")
             pygame.display.flip()
 
             ticks += 1
@@ -145,5 +156,5 @@ if __name__ == "__main__":
                              WHITE, BLACK)
         blitfont(screen, msg, (SWIDTH/2, SHEIGHT/2+1*msg.get_height()),
                  align="CENTER")
-                              
+
         pygame.display.flip()

@@ -39,14 +39,20 @@ class Entity(object):
 
     def move(self, pos):
         tx, ty = self.world.screen_to_world(pos)
+        oldtx, oldty = self.world.screen_to_world((self.x, self.y))
         if tx < 0 or ty < 0:
             return False
         if tx > self.world.width or ty > self.world.height:
             return False
+        if self.world.get_tile(tx, oldty).solid:
+            pos = (self.x, pos[1])
+        if self.world.get_tile(oldtx, ty).solid:
+            pos = (pos[0], self.y)
         self.oldx, self.oldy = self.x, self.y
         self.x, self.y = pos
         if self.world:
             self.world.check_collision(self)
+        return True
 
     def render(self, screen, pos):
         sx, sy = pos
