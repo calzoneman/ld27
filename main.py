@@ -1,3 +1,5 @@
+#!/usr/bin/env python2
+
 from world import Tile, World
 from entity import Entity, Player, Clock
 from util import *
@@ -29,9 +31,12 @@ if __name__ == "__main__":
     keys = defaultdict(lambda: False)
     clock = pygame.time.Clock()
 
-    regfont = pygame.font.SysFont("Monospace", 20)
+    regfont = pygame.font.SysFont("Sans", 20)
     WHITE = pygame.Color(255, 255, 255)
     BLACK = pygame.Color(0, 0, 0)
+    GREEN = pygame.Color(0, 255, 0)
+    YELLOW = pygame.Color(255, 255, 0)
+    RED = pygame.Color(255, 0, 0)
 
     player = Player((0, 0), loadimage("player.png"))
     MOVE_SPEED = 3
@@ -40,7 +45,9 @@ if __name__ == "__main__":
     for i in range(5):
         world.spawn_clock()
     for i in range(10):
-        world.spawn_enemy()
+        world.spawn_fastenemy()
+    for i in range(10):
+        world.spawn_slowenemy()
 
     ticks = 0
     started = False
@@ -84,8 +91,13 @@ if __name__ == "__main__":
         px, py = player.x, player.y
         xo = SWIDTH/2 - player.x
         yo = SHEIGHT/2 - player.y
+
         screen.fill(BLACK)
+
+        # Draw world
         world.render(screen, (xo, yo), (TWIDTH, THEIGHT))
+
+        # Draw HUD
         for e in world.entities:
             if isinstance(e, Clock) and e.x > px:
                 pass
@@ -98,6 +110,17 @@ if __name__ == "__main__":
         msg = regfont.render("x, y: {}, {}".format(player.x, player.y),
                              1, WHITE, BLACK)
         blitfont(screen, msg, (0, msg.get_height()))
+        healthcol = GREEN
+        if player.health < 3:
+            healthcol = RED
+        elif player.health < 6:
+            healthcol = YELLOW
+        msg = regfont.render("Health: {}".format(player.health), 1,
+                             healthcol, BLACK)
+        blitfont(screen, msg, (0, 2*msg.get_height()))
+        msg = regfont.render("Score: {}".format(player.score), 1,
+                             WHITE, BLACK)
+        blitfont(screen, msg, (0, 3*msg.get_height()))
         pygame.display.flip()
 
         ticks += 1

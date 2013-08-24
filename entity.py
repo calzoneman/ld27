@@ -10,6 +10,10 @@ class Entity(object):
         self.w, self.h = img.get_width(), img.get_height()
         self.image = img
 
+    def die(self):
+        if self.world:
+            self.world.remove_entity(self)
+
     def get_AABB(self):
         return AABB(self.x - self.w/2, self.y - self.h/2, self.w, self.h)
 
@@ -55,8 +59,7 @@ class Entity(object):
         screen.blit(self.image, (sx, sy))
 
 class MeleeSwipe(Entity):
-    def on_collision(self, ent):
-        print "Hit!"
+    pass
 
 ATTACK_UP    = loadimage("attack-up.png")
 ATTACK_DOWN  = loadimage("attack-down.png")
@@ -70,22 +73,25 @@ class Player(Entity):
         self.attack_timer = 0
         self.health = 10
         self.swipe = False
+        self.recovery_timer = 0
 
     def on_collision(self, ent):
         if isinstance(ent, Clock):
-            self.score += 1
-            print "Score: ",self.score
             self.world.spawn_clock()
             self.world.reset_timer()
         elif isinstance(ent, Enemy):
+            if self.recovery_timer > 0:
+                return
             self.health -= 1
-            print "Health: ", self.health
+            self.recovery_timer = 60
 
     def tick(self):
         if self.attack_timer:
             self.attack_timer -= 1
         if self.attack_timer == 0:
             self.swipe = False
+        if self.recovery_timer:
+            self.recovery_timer -= 1
 
     def attack(self, direction):
         if self.attack_timer:
@@ -119,7 +125,6 @@ class Player(Entity):
 
 class Enemy(Entity):
     KB_SPEED = 2
-    MOVE_SPEED = 2
 
     def __init__(self, *args, **kwargs):
         Entity.__init__(self, *args, **kwargs)
@@ -127,6 +132,7 @@ class Enemy(Entity):
         self.knockback = (0, 0)
         self.health = 5
         self.target = None
+        self.speed = 2
 
     def tick(self):
         if self.knockbacktimer:
@@ -144,13 +150,14 @@ class Enemy(Entity):
 
             ang = math.atan2(oy - y, ox - x)
             dx, dy = math.cos(ang), math.sin(ang)
-            self.move((x + Enemy.MOVE_SPEED * dx, y + Enemy.MOVE_SPEED * dy))
+            self.move((x + self.speed * dx, y + self.speed * dy))
 
     def on_collision(self, ent):
         if isinstance(ent, MeleeSwipe):
             self.health -= 1
             if self.health == 0:
-                self.world.remove_entity(self)
+                self.die()
+                return
             if ent.direction == "UP":
                 self.knockback = (0, -Enemy.KB_SPEED)
             elif ent.direction == "DOWN":
@@ -162,7 +169,38 @@ class Enemy(Entity):
 
             self.knockbacktimer = 10
         elif isinstance(ent, Player):
-            self.world.remove_entity(self)
+            self.health -= 1
+            if self.health == 0:
+                self.die()
+            
+            ang = math.atan2(ent.y - self.y, ent.x - self.x)
+            self.knockback = (-math.cos(ang)*Enemy.KB_SPEED, 
+                              -math.sin(ang)*Enemy.KB_SPEED)
+            self.knockbacktimer = 10
+
+class SlowEnemy(Enemy):
+    def __init__(self, *args, **kwargs):
+        Enemy.__init__(self, *args, **kwargs)
+        self.health = 5
+        self.speed = 2
+
+    def die(self):
+        Entity.die(self)
+        if self.world:
+            self.world.player_entity.score += 1
+            self.world.spawn_slowenemy()
+
+class FastEnemy(Enemy):
+    def __init__(self, *args, **kwargs):
+        Enemy.__init__(self, *args, **kwargs)
+        self.health = 1
+        self.speed = 3
+
+    def die(self):
+        Entity.die(self)
+        if self.world:
+            self.world.player_entity.score += 1
+            self.world.spawn_fastenemy()
 
 class Clock(Entity):
     def on_collision(self, ent):

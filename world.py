@@ -1,6 +1,6 @@
 import pygame
 import random
-from entity import Entity, Clock, Enemy, Player
+from entity import *
 from util import *
 
 clock_img = loadimage("clock.png")#pygame.image.load("clock.png")
@@ -73,10 +73,17 @@ class World(object):
         print "Spawned clock",x/Tile.SIZE,y/Tile.SIZE
         self.add_entity(e)
 
-    def spawn_enemy(self):
+    def spawn_fastenemy(self):
         x = random.randint(0, self.width * Tile.SIZE)
         y = random.randint(0, self.height * Tile.SIZE)
-        e = Enemy((x, y), enemy_img)
+        e = FastEnemy((x, y), enemy_img)
+        print "Spawned enemy",x/Tile.SIZE,y/Tile.SIZE
+        self.add_entity(e)
+
+    def spawn_slowenemy(self):
+        x = random.randint(0, self.width * Tile.SIZE)
+        y = random.randint(0, self.height * Tile.SIZE)
+        e = SlowEnemy((x, y), enemy_img)
         print "Spawned enemy",x/Tile.SIZE,y/Tile.SIZE
         self.add_entity(e)
 
