@@ -15,13 +15,10 @@ if __name__ == "__main__":
     keys = defaultdict(lambda: False)
     clock = pygame.time.Clock()
 
-    grass = pygame.image.load("grass.png")
-    water = pygame.image.load("water.png")
-    ply = pygame.image.load("player.png")
-    world = World((10, 10), default=Tile(grass))
-    world.set_tile(0, 0, Tile(water))
-    player = Entity((0, 0), ply)
-    world.entities.append(player)
+    player = Entity((0, 0), pygame.image.load("player.png"))
+    world = World((10, 10), default=Tile.GRASS)
+    world.add_entity(player)
+    world.spawn_clock()
 
     ticks = 0
 
@@ -39,13 +36,13 @@ if __name__ == "__main__":
             pygame.quit()
             sys.exit(0)
         if keys[K_w]:
-            player.y -= 1
+            player.move((player.x  , player.y-1))
         if keys[K_s]:
-            player.y += 1
+            player.move((player.x  , player.y+1))
         if keys[K_a]:
-            player.x -= 1
+            player.move((player.x-1, player.y  ))
         if keys[K_d]:
-            player.x += 1
+            player.move((player.x+1, player.y  ))
 
         px, py = player.x, player.y
         xo = SWIDTH/2 - player.x

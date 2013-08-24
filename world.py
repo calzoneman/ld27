@@ -1,3 +1,9 @@
+import pygame
+import random
+from entity import Entity
+
+clock_img = pygame.image.load("clock.png")
+
 class Tile(object):
     SIZE = 16
     def __init__(self, image, solid=False):
@@ -7,6 +13,8 @@ class Tile(object):
     def render(self, screen, x, y):
         if self.image:
             screen.blit(self.image, (x, y))
+
+Tile.GRASS = Tile(pygame.image.load("grass.png"))
 
 class World(object):
     def __init__(self, size, default=Tile(None)):
@@ -28,6 +36,23 @@ class World(object):
         x = x % self.width
         y = y % self.height
         self.tiles[y][x] = t
+
+    def add_entity(self, e):
+        e.world = self
+        if e not in self.entities:
+            self.entities.append(e)
+
+    def check_collision(self, e):
+        for f in self.entities:
+            if f != e and e.collides(f):
+                #Collision
+                pass
+
+    def spawn_clock(self):
+        x = random.randint(0, self.width * Tile.SIZE)
+        y = random.randint(0, self.height * Tile.SIZE)
+        e = Entity((x, y), clock_img)
+        self.add_entity(e)
 
     def render(self, screen, offset, size):
         xo, yo = offset
