@@ -1,6 +1,6 @@
 import pygame
 import random
-from entity import Entity, Clock, Enemy
+from entity import Entity, Clock, Enemy, Player
 from util import *
 
 clock_img = loadimage("clock.png")#pygame.image.load("clock.png")
@@ -28,6 +28,7 @@ class World(object):
                 row.append(default)
             self.tiles.append(row)
         self.entities = []
+        self.player_entity = None
         self.timer = 600
 
     def get_tile(self, x, y):
@@ -42,6 +43,10 @@ class World(object):
 
     def add_entity(self, e):
         e.world = self
+        if isinstance(e, Player):
+            self.player_entity = e
+        elif isinstance(e, Enemy):
+            e.target = self.player_entity
         if e not in self.entities:
             self.entities.append(e)
 

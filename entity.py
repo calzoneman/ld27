@@ -1,5 +1,6 @@
 from collections import namedtuple
 from util import *
+import math
 
 AABB = namedtuple('AABB', ['x', 'y', 'width', 'height'])
 
@@ -57,11 +58,13 @@ ATTACK_UP    = loadimage("attack-up.png")
 ATTACK_DOWN  = loadimage("attack-down.png")
 ATTACK_LEFT  = loadimage("attack-left.png")
 ATTACK_RIGHT = loadimage("attack-right.png")
+AOFF = 10
 class Player(Entity):
     def __init__(self, *args, **kwargs):
         Entity.__init__(self, *args, **kwargs)
         self.score = 0
         self.attack_timer = 0
+        self.health = 10
         self.swipe = False
 
     def on_collision(self, ent):
@@ -70,6 +73,9 @@ class Player(Entity):
             print "Score: ",self.score
             self.world.spawn_clock()
             self.world.reset_timer()
+        elif isinstance(ent, Enemy):
+            self.health -= 1
+            print "Health: ", self.health
 
     def tick(self):
         if self.attack_timer:
@@ -81,13 +87,13 @@ class Player(Entity):
         if self.attack_timer:
             return
         if direction == "UP":
-            self.swipe = MeleeSwipe((self.x, self.y-self.h), ATTACK_UP)
+            self.swipe = MeleeSwipe((self.x, self.y-self.h-AOFF), ATTACK_UP)
         elif direction == "DOWN":
-            self.swipe = MeleeSwipe((self.x, self.y+self.h), ATTACK_DOWN)
+            self.swipe = MeleeSwipe((self.x, self.y+self.h+AOFF), ATTACK_DOWN)
         elif direction == "LEFT":
-            self.swipe = MeleeSwipe((self.x-self.w, self.y), ATTACK_LEFT)
+            self.swipe = MeleeSwipe((self.x-self.w-AOFF, self.y), ATTACK_LEFT)
         elif direction == "RIGHT":
-            self.swipe = MeleeSwipe((self.x+self.w, self.y), ATTACK_RIGHT)
+            self.swipe = MeleeSwipe((self.x+self.w+AOFF, self.y), ATTACK_RIGHT)
 
         self.swipe.direction = direction
         self.world.check_collision(self.swipe)
@@ -99,28 +105,42 @@ class Player(Entity):
         Entity.render(self, screen, pos)
         if self.swipe:
             if self.swipe.direction == "UP":
-                self.swipe.render(screen, (x, y - self.h))
+                self.swipe.render(screen, (x, y - self.h - AOFF))
             elif self.swipe.direction == "DOWN":
-                self.swipe.render(screen, (x, y + self.h))
+                self.swipe.render(screen, (x, y + self.h + AOFF))
             elif self.swipe.direction == "LEFT":
-                self.swipe.render(screen, (x - self.w, y))
+                self.swipe.render(screen, (x - self.w - AOFF, y))
             elif self.swipe.direction == "RIGHT":
-                self.swipe.render(screen, (x + self.w, y))
+                self.swipe.render(screen, (x + self.w + AOFF, y))
 
 class Enemy(Entity):
     KB_SPEED = 2
+    MOVE_SPEED = 2
 
     def __init__(self, *args, **kwargs):
         Entity.__init__(self, *args, **kwargs)
         self.knockbacktimer = 0
         self.knockback = (0, 0)
         self.health = 5
+        self.target = None
 
     def tick(self):
         if self.knockbacktimer:
             self.knockbacktimer -= 1
             kx, ky = self.knockback
             self.move((self.x + kx, self.y + ky))
+            return
+
+        if self.target:
+            x, y = self.x, self.y
+            ox, oy = self.target.x, self.target.y
+            d = (x - ox)**2 + (y - oy)**2
+            #if d > 100000:
+            #    return
+
+            ang = math.atan2(oy - y, ox - x)
+            dx, dy = math.cos(ang), math.sin(ang)
+            self.move((x + Enemy.MOVE_SPEED * dx, y + Enemy.MOVE_SPEED * dy))
 
     def on_collision(self, ent):
         if isinstance(ent, MeleeSwipe):
@@ -137,6 +157,8 @@ class Enemy(Entity):
                 self.knockback = (Enemy.KB_SPEED, 0)
 
             self.knockbacktimer = 10
+        elif isinstance(ent, Player):
+            self.world.remove_entity(self)
 
 class Clock(Entity):
     def on_collision(self, ent):

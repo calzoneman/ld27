@@ -38,7 +38,7 @@ if __name__ == "__main__":
     world.add_entity(player)
     for i in range(5):
         world.spawn_clock()
-    for i in range(100):
+    for i in range(10):
         world.spawn_enemy()
 
     ticks = 0
