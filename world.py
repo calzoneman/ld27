@@ -134,7 +134,7 @@ def interpolate(a, b, x):
 
     return a*(1 - f) + b*f
 
-seed = 3345435
+seed = random.randint(-3489423895, 23452345)
 def noise(x, y):
     n = x + y*57 + seed
     n = (n << 13) ^ n
