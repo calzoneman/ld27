@@ -19,10 +19,42 @@ def blitfont(screen, msg, pos, align="LEFT"):
         x -= msg.get_width()
     screen.blit(msg, (x, y))
 
+def show_intro(screen, font):
+    y = screen.get_height() / 2
+    x = screen.get_width() / 2
+    black = pygame.Color(0, 0, 0)
+    white = pygame.Color(255, 255, 255)
+
+    msg = font.render("WASD to move", 1, WHITE, BLACK)
+    blitfont(screen, msg, (x, y), align="CENTER")
+    y += msg.get_height()
+
+    msg = font.render("Arrow keys to attack", 1, WHITE, BLACK)
+    blitfont(screen, msg, (x, y), align="CENTER")
+    y += msg.get_height()
+
+    msg = font.render("Collect clocks to reset the timer", 1, WHITE, BLACK)
+    blitfont(screen, msg, (x, y), align="CENTER")
+    y += msg.get_height()
+
+    msg = font.render("Attack enemies for points", 1, WHITE, BLACK)
+    blitfont(screen, msg, (x, y), align="CENTER")
+    y += msg.get_height()
+
+    msg = font.render("Press space to start", 1, WHITE, BLACK)
+    blitfont(screen, msg, (x, y), align="CENTER")
+    y += msg.get_height()
+
 if __name__ == "__main__":
     pygame.init()
     pygame.display.init()
     pygame.font.init()
+    pygame.mixer.init(frequency=22050, size=-16, channels=2, buffer=512)
+
+    slash = loadsound("slash.wav")
+    gameover = loadsound("gameover.wav")
+    timewarn = loadsound("time.wav")
+
     SWIDTH, SHEIGHT = 640, 480
     TWIDTH, THEIGHT = SWIDTH / Tile.SIZE, SHEIGHT / Tile.SIZE
     FLAGS = HWSURFACE | DOUBLEBUF
@@ -35,6 +67,8 @@ if __name__ == "__main__":
     YELLOW = pygame.Color(255, 255, 0)
     RED = pygame.Color(255, 0, 0)
     arrow = loadimage("arrow.png")
+    water = loadimage("water.png")
+    bg = tile_background(water, (SWIDTH, SHEIGHT))
 
     def play():
         keys = defaultdict(lambda: False)
@@ -64,6 +98,8 @@ if __name__ == "__main__":
                     keys[ev.key] = True
                     if keys[K_SPACE]:
                         started = True
+                    if ev.key in [K_UP, K_LEFT, K_DOWN, K_RIGHT]:
+                        slash.play()
                 elif ev.type == KEYUP:
                     keys[ev.key] = False
 
@@ -98,7 +134,8 @@ if __name__ == "__main__":
             xo = SWIDTH/2 - player.x
             yo = SHEIGHT/2 - player.y
 
-            screen.fill(BLACK)
+            #screen.fill(BLACK)
+            screen.blit(bg, (0, 0))
 
             # Draw world
             world.render(screen, (xo, yo), (TWIDTH, THEIGHT))
@@ -139,6 +176,9 @@ if __name__ == "__main__":
                                  WHITE, BLACK)
             blitfont(screen, msg, (0, 3*msg.get_height()))
 
+            if world.timer < 180 and ticks % 40 == 0:
+                timewarn.play()
+
             if world.timer < 180 and (ticks / 20) % 2 == 0:
                 msg = regfont.render("Time's running out!", 1, WHITE, BLACK)
                 blitfont(screen, msg, (SWIDTH/2, msg.get_height()/2),
@@ -146,15 +186,14 @@ if __name__ == "__main__":
 
 
             if not started:
-                msg = regfont.render("Press Space to start", 1,
-                                     WHITE, BLACK)
-                blitfont(screen, msg, (SWIDTH/2, SHEIGHT/2), align="CENTER")
+                show_intro(screen, regfont)
             pygame.display.flip()
 
             ticks += 1
             clock.tick(60)
 
     score, time = play()
+    gameover.play()
     while True:
         for ev in pygame.event.get():
             if ev.type == QUIT or ev.type == KEYDOWN and ev.key == K_ESCAPE:

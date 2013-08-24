@@ -67,13 +67,14 @@ class Entity(object):
 class MeleeSwipe(Entity):
     def on_collision(self, ent):
         if isinstance(ent, Enemy):
-            self.player.score += 1
+            self.player.score += 10
 
 ATTACK_UP    = loadimage("attack-up.png")
 ATTACK_DOWN  = loadimage("attack-down.png")
 ATTACK_LEFT  = loadimage("attack-left.png")
 ATTACK_RIGHT = loadimage("attack-right.png")
 AOFF = 10
+hurt = loadsound("hurt.wav")
 class Player(Entity):
     def __init__(self, *args, **kwargs):
         Entity.__init__(self, *args, **kwargs)
@@ -85,11 +86,13 @@ class Player(Entity):
 
     def on_collision(self, ent):
         if isinstance(ent, Clock):
+            self.score += 100
             self.world.spawn_clock()
             self.world.reset_timer()
         elif isinstance(ent, Enemy):
             if self.recovery_timer > 0:
                 return
+            hurt.play()
             self.health -= 1
             self.recovery_timer = 60
 
@@ -209,7 +212,9 @@ class FastEnemy(Enemy):
         if self.world:
             self.world.spawn_fastenemy()
 
+clock_get = loadsound("clock_get.wav")
 class Clock(Entity):
     def on_collision(self, ent):
         if isinstance(ent, Player):
+            clock_get.play()
             self.world.remove_entity(self)
