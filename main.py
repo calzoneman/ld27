@@ -34,6 +34,7 @@ if __name__ == "__main__":
     GREEN = pygame.Color(0, 255, 0)
     YELLOW = pygame.Color(255, 255, 0)
     RED = pygame.Color(255, 0, 0)
+    arrow = loadimage("arrow.png")
 
     def play():
         keys = defaultdict(lambda: False)
@@ -104,8 +105,19 @@ if __name__ == "__main__":
 
             # Draw HUD
             for e in world.entities:
-                if isinstance(e, Clock) and e.x > px:
-                    pass
+                if isinstance(e, Clock):
+                    ex = e.x + xo
+                    ey = e.y + yo
+                    if (ex < 0 or ex > SWIDTH or
+                        ey < 0 or ey > SHEIGHT):
+                        ang = math.atan2(ey - SHEIGHT/2, ex - SWIDTH/2)
+                        icon = pygame.transform.rotate(arrow, -ang*180/math.pi)
+                        w = icon.get_width()/2
+                        h = icon.get_height()/2
+                        dx = math.cos(ang) * 50 - h
+                        dy = math.sin(ang) * 50 - w
+                        screen.blit(icon, (SWIDTH/2 + dx, SHEIGHT/2 + dy))
+
             msg = regfont.render("{} fps".format(int(clock.get_fps())), 1,
                                  WHITE, BLACK)
             blitfont(screen, msg, (0, 0))
