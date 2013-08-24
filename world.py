@@ -64,12 +64,12 @@ class World(object):
         tx = int(-xo / Tile.SIZE)
         ty = int(-yo / Tile.SIZE)
         w, h = size
-        for y in range(ty, h + 1):
+        for y in range(ty, ty + h + 1):
             if y < 0:
                 continue
             if y > self.height:
                 break
-            for x in range(tx, w + 1):
+            for x in range(tx, tx + w + 1):
                 if x < 0 or x > self.width:
                     continue
                 t = self.get_tile(x, y)
