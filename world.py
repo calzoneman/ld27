@@ -66,25 +66,34 @@ class World(object):
         y = int(y / Tile.SIZE)
         return (x, y)
 
-    def spawn_clock(self):
+    def random_position(self):
         x = random.randint(0, self.width * Tile.SIZE)
         y = random.randint(0, self.height * Tile.SIZE)
+        return x, y
+
+    def spawn_clock(self):
+        x, y = self.random_position()
         e = Clock((x, y), clock_img)
-        print "Spawned clock",x/Tile.SIZE,y/Tile.SIZE
         self.add_entity(e)
 
     def spawn_fastenemy(self):
-        x = random.randint(0, self.width * Tile.SIZE)
-        y = random.randint(0, self.height * Tile.SIZE)
+        x, y = self.random_position()
+        if self.player_entity:
+            px, py = self.player_entity.x, self.player_entity.y
+            # Don't be evil in our spawning pattern
+            while (y-py)**2 + (x-px)**2 < 100:
+                x, y = self.random_position()
         e = FastEnemy((x, y), enemy_img)
-        print "Spawned enemy",x/Tile.SIZE,y/Tile.SIZE
         self.add_entity(e)
 
     def spawn_slowenemy(self):
-        x = random.randint(0, self.width * Tile.SIZE)
-        y = random.randint(0, self.height * Tile.SIZE)
+        x, y = self.random_position()
+        if self.player_entity:
+            px, py = self.player_entity.x, self.player_entity.y
+            # Don't be evil in our spawning pattern
+            while (y-py)**2 + (x-px)**2 < 100:
+                x, y = self.random_position()
         e = SlowEnemy((x, y), enemy_img)
-        print "Spawned enemy",x/Tile.SIZE,y/Tile.SIZE
         self.add_entity(e)
 
     def reset_timer(self):

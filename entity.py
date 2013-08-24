@@ -59,7 +59,9 @@ class Entity(object):
         screen.blit(self.image, (sx, sy))
 
 class MeleeSwipe(Entity):
-    pass
+    def on_collision(self, ent):
+        if isinstance(ent, Enemy):
+            self.player.score += 1
 
 ATTACK_UP    = loadimage("attack-up.png")
 ATTACK_DOWN  = loadimage("attack-down.png")
@@ -106,6 +108,7 @@ class Player(Entity):
             self.swipe = MeleeSwipe((self.x+self.w+AOFF, self.y), ATTACK_RIGHT)
 
         self.swipe.direction = direction
+        self.swipe.player = self
         self.world.check_collision(self.swipe)
         
         self.attack_timer = 10
@@ -187,7 +190,6 @@ class SlowEnemy(Enemy):
     def die(self):
         Entity.die(self)
         if self.world:
-            self.world.player_entity.score += 1
             self.world.spawn_slowenemy()
 
 class FastEnemy(Enemy):
@@ -199,7 +201,6 @@ class FastEnemy(Enemy):
     def die(self):
         Entity.die(self)
         if self.world:
-            self.world.player_entity.score += 1
             self.world.spawn_fastenemy()
 
 class Clock(Entity):
