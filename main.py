@@ -1,6 +1,7 @@
 from world import Tile, World
-from entity import Entity, Player
+from entity import Entity, Player, Clock
 from util import *
+import math
 from collections import defaultdict
 import pygame
 from pygame.locals import *
@@ -85,6 +86,9 @@ if __name__ == "__main__":
         yo = SHEIGHT/2 - player.y
         screen.fill(BLACK)
         world.render(screen, (xo, yo), (TWIDTH, THEIGHT))
+        for e in world.entities:
+            if isinstance(e, Clock) and e.x > px:
+                pass
         msg = regfont.render("{} fps".format(int(clock.get_fps())), 1,
                              WHITE, BLACK)
         blitfont(screen, msg, (0, 0))

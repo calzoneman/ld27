@@ -48,6 +48,10 @@ class Entity(object):
         sx, sy = pos
         sx -= self.w / 2
         sy -= self.h / 2
+        if sx < -self.w or sy < -self.h:
+            return
+        if sx > screen.get_width() or sy > screen.get_height():
+            return
         screen.blit(self.image, (sx, sy))
 
 class MeleeSwipe(Entity):
