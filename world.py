@@ -1,6 +1,6 @@
 import pygame
 import random
-from entity import Entity
+from entity import Entity, Clock
 
 clock_img = pygame.image.load("clock.png")
 
@@ -42,16 +42,21 @@ class World(object):
         if e not in self.entities:
             self.entities.append(e)
 
+    def remove_entity(self, e):
+        if e in self.entities:
+            self.entities.remove(e)
+
     def check_collision(self, e):
         for f in self.entities:
             if f != e and e.collides(f):
-                #Collision
-                pass
+                e.on_collision(f)
+                f.on_collision(e)
 
     def spawn_clock(self):
         x = random.randint(0, self.width * Tile.SIZE)
         y = random.randint(0, self.height * Tile.SIZE)
-        e = Entity((x, y), clock_img)
+        e = Clock((x, y), clock_img)
+        print "Spawned clock",x/Tile.SIZE,y/Tile.SIZE
         self.add_entity(e)
 
     def render(self, screen, offset, size):

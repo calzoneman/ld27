@@ -1,5 +1,5 @@
 from world import Tile, World
-from entity import Entity
+from entity import Entity, Player
 from collections import defaultdict
 import pygame
 from pygame.locals import *
@@ -15,8 +15,8 @@ if __name__ == "__main__":
     keys = defaultdict(lambda: False)
     clock = pygame.time.Clock()
 
-    player = Entity((0, 0), pygame.image.load("player.png"))
-    world = World((10, 10), default=Tile.GRASS)
+    player = Player((0, 0), pygame.image.load("player.png"))
+    world = World((100, 100), default=Tile.GRASS)
     world.add_entity(player)
     world.spawn_clock()
 

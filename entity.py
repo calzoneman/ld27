@@ -25,6 +25,9 @@ class Entity(object):
 
         return True
 
+    def on_collision(self, ent):
+        pass
+
     def move(self, pos):
         self.oldx, self.oldy = self.x, self.y
         self.x, self.y = pos
@@ -36,3 +39,19 @@ class Entity(object):
         sx -= self.w / 2
         sy -= self.h / 2
         screen.blit(self.image, (sx, sy))
+
+class Player(Entity):
+    def __init__(self, *args, **kwargs):
+        Entity.__init__(self, *args, **kwargs)
+        self.score = 0
+
+    def on_collision(self, ent):
+        if isinstance(ent, Clock):
+            self.score += 1
+            print "Score: ",self.score
+            self.world.spawn_clock()
+
+class Clock(Entity):
+    def on_collision(self, ent):
+        if isinstance(ent, Player):
+            self.world.remove_entity(self)
