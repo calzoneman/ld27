@@ -1,8 +1,9 @@
 import pygame
 import random
 from entity import Entity, Clock
+from util import *
 
-clock_img = pygame.image.load("clock.png")
+clock_img = loadimage("clock.png")#pygame.image.load("clock.png")
 
 class Tile(object):
     SIZE = 16
@@ -14,7 +15,7 @@ class Tile(object):
         if self.image:
             screen.blit(self.image, (x, y))
 
-Tile.GRASS = Tile(pygame.image.load("grass.png"))
+Tile.GRASS = Tile(loadimage("grass.png"))
 
 class World(object):
     def __init__(self, size, default=Tile(None)):
@@ -26,6 +27,7 @@ class World(object):
                 row.append(default)
             self.tiles.append(row)
         self.entities = []
+        self.timer = 600
 
     def get_tile(self, x, y):
         x = x % self.width
@@ -52,12 +54,26 @@ class World(object):
                 e.on_collision(f)
                 f.on_collision(e)
 
+    def screen_to_world(self, pos):
+        x, y = pos
+        x = int(x / Tile.SIZE)
+        y = int(y / Tile.SIZE)
+        return (x, y)
+
     def spawn_clock(self):
         x = random.randint(0, self.width * Tile.SIZE)
         y = random.randint(0, self.height * Tile.SIZE)
         e = Clock((x, y), clock_img)
         print "Spawned clock",x/Tile.SIZE,y/Tile.SIZE
         self.add_entity(e)
+
+    def reset_timer(self):
+        self.timer = 600
+
+    def tick(self):
+        self.timer -= 1
+        for e in self.entities:
+            e.tick()
 
     def render(self, screen, offset, size):
         xo, yo = offset

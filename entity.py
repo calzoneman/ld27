@@ -1,4 +1,5 @@
 from collections import namedtuple
+from util import *
 
 AABB = namedtuple('AABB', ['x', 'y', 'width', 'height'])
 
@@ -28,7 +29,15 @@ class Entity(object):
     def on_collision(self, ent):
         pass
 
+    def tick(self):
+        pass
+
     def move(self, pos):
+        tx, ty = self.world.screen_to_world(pos)
+        if tx < 0 or ty < 0:
+            return False
+        if tx > self.world.width or ty > self.world.height:
+            return False
         self.oldx, self.oldy = self.x, self.y
         self.x, self.y = pos
         if self.world:
@@ -40,16 +49,63 @@ class Entity(object):
         sy -= self.h / 2
         screen.blit(self.image, (sx, sy))
 
+class MeleeSwipe(Entity):
+    def on_collision(self, ent):
+        print "Hit!"
+
+ATTACK_UP    = loadimage("attack-up.png")
+ATTACK_DOWN  = loadimage("attack-down.png")
+ATTACK_LEFT  = loadimage("attack-left.png")
+ATTACK_RIGHT = loadimage("attack-right.png")
 class Player(Entity):
     def __init__(self, *args, **kwargs):
         Entity.__init__(self, *args, **kwargs)
         self.score = 0
+        self.attack_timer = 0
+        self.swipe = False
 
     def on_collision(self, ent):
         if isinstance(ent, Clock):
             self.score += 1
             print "Score: ",self.score
             self.world.spawn_clock()
+            self.world.reset_timer()
+
+    def tick(self):
+        if self.attack_timer:
+            self.attack_timer -= 1
+        if self.attack_timer == 0:
+            self.swipe = False
+
+    def attack(self, direction):
+        if self.attack_timer:
+            return
+        if direction == "UP":
+            self.swipe = MeleeSwipe((self.x, self.y-self.h), ATTACK_UP)
+        elif direction == "DOWN":
+            self.swipe = MeleeSwipe((self.x, self.y+self.h), ATTACK_DOWN)
+        elif direction == "LEFT":
+            self.swipe = MeleeSwipe((self.x-self.w, self.y), ATTACK_LEFT)
+        elif direction == "RIGHT":
+            self.swipe = MeleeSwipe((self.x+self.w, self.y), ATTACK_RIGHT)
+
+        self.swipe.direction = direction
+        self.world.check_collision(self.swipe)
+        
+        self.attack_timer = 10
+
+    def render(self, screen, pos):
+        x, y = pos
+        Entity.render(self, screen, pos)
+        if self.swipe:
+            if self.swipe.direction == "UP":
+                self.swipe.render(screen, (x, y - self.h))
+            elif self.swipe.direction == "DOWN":
+                self.swipe.render(screen, (x, y + self.h))
+            elif self.swipe.direction == "LEFT":
+                self.swipe.render(screen, (x - self.w, y))
+            elif self.swipe.direction == "RIGHT":
+                self.swipe.render(screen, (x + self.w, y))
 
 class Clock(Entity):
     def on_collision(self, ent):
