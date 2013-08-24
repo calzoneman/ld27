@@ -107,6 +107,37 @@ class Player(Entity):
             elif self.swipe.direction == "RIGHT":
                 self.swipe.render(screen, (x + self.w, y))
 
+class Enemy(Entity):
+    KB_SPEED = 2
+
+    def __init__(self, *args, **kwargs):
+        Entity.__init__(self, *args, **kwargs)
+        self.knockbacktimer = 0
+        self.knockback = (0, 0)
+        self.health = 5
+
+    def tick(self):
+        if self.knockbacktimer:
+            self.knockbacktimer -= 1
+            kx, ky = self.knockback
+            self.move((self.x + kx, self.y + ky))
+
+    def on_collision(self, ent):
+        if isinstance(ent, MeleeSwipe):
+            self.health -= 1
+            if self.health == 0:
+                self.world.remove_entity(self)
+            if ent.direction == "UP":
+                self.knockback = (0, -Enemy.KB_SPEED)
+            elif ent.direction == "DOWN":
+                self.knockback = (0, Enemy.KB_SPEED)
+            elif ent.direction == "LEFT":
+                self.knockback = (-Enemy.KB_SPEED, 0)
+            elif ent.direction == "RIGHT":
+                self.knockback = (Enemy.KB_SPEED, 0)
+
+            self.knockbacktimer = 10
+
 class Clock(Entity):
     def on_collision(self, ent):
         if isinstance(ent, Player):
