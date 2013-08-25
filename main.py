@@ -59,6 +59,7 @@ if __name__ == "__main__":
     gameover = loadsound("gameover.wav")
     timewarn = loadsound("time.wav")
 
+    pygame.display.set_icon(loadimage("clock.png"))
     SWIDTH, SHEIGHT = 640, 480
     TWIDTH, THEIGHT = SWIDTH / Tile.SIZE, SHEIGHT / Tile.SIZE
     FLAGS = HWSURFACE | DOUBLEBUF
