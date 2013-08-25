@@ -128,8 +128,7 @@ if __name__ == "__main__":
                 world.tick()
 
             if player.health <= 0 or world.timer <= 0:
-                pass
-                #return player.score, ticks
+                return player.score, ticks
 
             px, py = player.x, player.y
             xo = SWIDTH/2 - player.x
