@@ -60,7 +60,7 @@ if __name__ == "__main__":
     FLAGS = HWSURFACE | DOUBLEBUF
     screen = pygame.display.set_mode((SWIDTH, SHEIGHT), FLAGS)
 
-    regfont = pygame.font.SysFont("Sans", 20)
+    regfont = makefont(20)
     WHITE = pygame.Color(255, 255, 255)
     BLACK = pygame.Color(0, 0, 0)
     GREEN = pygame.Color(0, 255, 0)
@@ -128,7 +128,8 @@ if __name__ == "__main__":
                 world.tick()
 
             if player.health <= 0 or world.timer <= 0:
-                return player.score, ticks
+                pass
+                #return player.score, ticks
 
             px, py = player.x, player.y
             xo = SWIDTH/2 - player.x

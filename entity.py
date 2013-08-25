@@ -1,6 +1,7 @@
 from collections import namedtuple
 from util import *
 import math
+import random
 
 AABB = namedtuple('AABB', ['x', 'y', 'width', 'height'])
 
@@ -68,6 +69,7 @@ class MeleeSwipe(Entity):
     def on_collision(self, ent):
         if isinstance(ent, Enemy):
             self.player.score += 10
+            self.player.world.add_entity(TextParticle((ent.x, ent.y), "+10"))
 
 ATTACK_UP    = loadimage("attack-up.png")
 ATTACK_DOWN  = loadimage("attack-down.png")
@@ -199,6 +201,7 @@ class SlowEnemy(Enemy):
     def die(self):
         Entity.die(self)
         if self.world:
+            make_deathparticles((self.x, self.y), self.world)
             self.world.spawn_slowenemy()
 
 class FastEnemy(Enemy):
@@ -210,6 +213,7 @@ class FastEnemy(Enemy):
     def die(self):
         Entity.die(self)
         if self.world:
+            make_deathparticles((self.x, self.y), self.world)
             self.world.spawn_fastenemy()
 
 clock_get = loadsound("clock_get.wav")
@@ -217,4 +221,55 @@ class Clock(Entity):
     def on_collision(self, ent):
         if isinstance(ent, Player):
             clock_get.play()
+            self.world.add_entity(TextParticle((self.x, self.y), "+100"))
             self.world.remove_entity(self)
+            
+def make_deathparticles(pos, world):
+    for i in range(10):
+        ang = random.random() * 2*math.pi
+        speed = random.random() * 3
+        e = DeathParticle(pos, (speed*math.cos(ang), speed*math.sin(ang)))
+        world.add_entity(e)
+
+PARTICLE_RED = coloredrect((4, 4), (187, 0, 0))
+class DeathParticle(Entity):
+    def __init__(self, pos, vec, timer=60):
+        self.x, self.y = pos
+        self.w, self.h = PARTICLE_RED.get_width(), PARTICLE_RED.get_height()
+        self.image = PARTICLE_RED
+        self.vec = list(vec)
+        self.timer = timer
+
+    def tick(self):
+        self.timer -= 1
+        if self.timer == 0:
+            self.die()
+
+        self.move((self.vec[0] + self.x, self.vec[1] + self.y))
+        self.vec[0] -= 0.1
+        if self.vec[0] < 0:
+            self.vec[0] = 0
+        self.vec[1] -= 0.1
+        if self.vec[1] < 0:
+            self.vec[1] = 0
+
+SMALLFONT = makefont(14)
+class TextParticle(Entity):
+    def __init__(self, pos, text):
+        self.x, self.y = pos
+        self.text = text
+        self.w, self.h = 0, 0
+        self.opacity = 255
+        self.dy = -2.0
+
+    def tick(self):
+        self.y += self.dy
+        self.dy += 0.1
+        self.opacity -= 1
+        if self.opacity <= 0:
+            self.die()
+
+    def render(self, screen, pos):
+        fg = (0, 0, 0, self.opacity)
+        self.image = SMALLFONT.render(self.text, 1, fg)
+        Entity.render(self, screen, pos)
