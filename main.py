@@ -41,6 +41,10 @@ def show_intro(screen, font):
     blitfont(screen, msg, (x, y), align="CENTER")
     y += msg.get_height()
 
+    msg = font.render("Press E to set off a bomb", 1, WHITE, BLACK)
+    blitfont(screen, msg, (x, y), align="CENTER")
+    y += msg.get_height()
+
     msg = font.render("Press space to start", 1, WHITE, BLACK)
     blitfont(screen, msg, (x, y), align="CENTER")
     y += msg.get_height()
@@ -73,6 +77,7 @@ if __name__ == "__main__":
     def play():
         keys = defaultdict(lambda: False)
         clock = pygame.time.Clock()
+        paused = False
 
         world = World((50, 50), default=Tile.GRASS)
         px, py = world.random_position()
@@ -96,17 +101,24 @@ if __name__ == "__main__":
                     sys.exit(0)
                 elif ev.type == KEYDOWN:
                     keys[ev.key] = True
-                    if keys[K_SPACE]:
-                        started = True
+                    if ev.key == K_SPACE:
+                        if not started:
+                            started = True
+                        else:
+                            paused = not paused
                     if ev.key in [K_UP, K_LEFT, K_DOWN, K_RIGHT]:
                         slash.play()
+                    if ev.key == K_e and player.bombs > 0:
+                        world.bomb((player.x, player.y))
+                        player.bombs -= 1
                 elif ev.type == KEYUP:
                     keys[ev.key] = False
 
             if keys[K_ESCAPE]:
                 pygame.quit()
                 sys.exit(0)
-            if started:
+
+            if started and not paused:
                 if keys[K_w]:
                     player.move((player.x           , player.y-MOVE_SPEED))
                 if keys[K_s]:
@@ -161,9 +173,9 @@ if __name__ == "__main__":
             msg = regfont.render("{:.1f} seconds".format(world.timer / 60.0), 1,
                                  WHITE, BLACK)
             blitfont(screen, msg, (SWIDTH-1, 0), align="RIGHT")
-            msg = regfont.render("x, y: {}, {}".format(player.x, player.y),
-                                 1, WHITE, BLACK)
-            blitfont(screen, msg, (0, msg.get_height()))
+            msg = regfont.render("Bombs: {}".format(player.bombs), 1,
+                                 WHITE, BLACK)
+            blitfont(screen, msg, (0, 1*msg.get_height()))
             healthcol = GREEN
             if player.health < 3:
                 healthcol = RED
@@ -187,6 +199,9 @@ if __name__ == "__main__":
 
             if not started:
                 show_intro(screen, regfont)
+            elif paused:
+                msg = regfont.render("Paused", 1, WHITE, BLACK)
+                blitfont(screen, msg, (SWIDTH/2, SHEIGHT/2), align="CENTER")
             pygame.display.flip()
 
             ticks += 1

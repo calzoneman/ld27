@@ -101,6 +101,14 @@ class World(object):
         e = SlowEnemy((x, y), enemy_img)
         self.add_entity(e)
 
+    def bomb(self, pos):
+        for i in range(20):
+            ang = random.random() * 2*math.pi
+            speed = random.random() * 5
+            e = ShrapnelParticle(pos, 
+                                 (speed*math.cos(ang), speed*math.sin(ang)))
+            self.add_entity(e)
+
     def reset_timer(self):
         self.timer = 600
 

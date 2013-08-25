@@ -85,6 +85,7 @@ class Player(Entity):
         self.health = 10
         self.swipe = False
         self.recovery_timer = 0
+        self.bombs = 2
 
     def on_collision(self, ent):
         if isinstance(ent, Clock):
@@ -180,8 +181,12 @@ class Enemy(Entity):
                 self.knockback = (-Enemy.KB_SPEED, 0)
             elif ent.direction == "RIGHT":
                 self.knockback = (Enemy.KB_SPEED, 0)
-
             self.knockbacktimer = 10
+
+        elif isinstance(ent, ShrapnelParticle):
+            self.health = 0
+            self.die()
+
         elif isinstance(ent, Player):
             self.health -= 1
             if self.health == 0:
@@ -228,17 +233,23 @@ def make_deathparticles(pos, world):
     for i in range(10):
         ang = random.random() * 2*math.pi
         speed = random.random() * 3
-        e = DeathParticle(pos, (speed*math.cos(ang), speed*math.sin(ang)))
+        e = BaseParticle(pos, (speed*math.cos(ang), speed*math.sin(ang)))
         world.add_entity(e)
 
+def sign(x):
+    if x == 0:
+        return 0
+    return x / abs(x)
+
 PARTICLE_RED = coloredrect((4, 4), (187, 0, 0))
-class DeathParticle(Entity):
+class BaseParticle(Entity):
     def __init__(self, pos, vec, timer=60):
         self.x, self.y = pos
         self.w, self.h = PARTICLE_RED.get_width(), PARTICLE_RED.get_height()
         self.image = PARTICLE_RED
         self.vec = list(vec)
         self.timer = timer
+        self.damp = 0.1
 
     def tick(self):
         self.timer -= 1
@@ -246,12 +257,19 @@ class DeathParticle(Entity):
             self.die()
 
         self.move((self.vec[0] + self.x, self.vec[1] + self.y))
-        self.vec[0] -= 0.1
-        if self.vec[0] < 0:
+        self.vec[0] -= self.damp * sign(self.vec[0])
+        if abs(self.vec[0]) < 0.2:
             self.vec[0] = 0
-        self.vec[1] -= 0.1
-        if self.vec[1] < 0:
+        self.vec[1] -= self.damp * sign(self.vec[1])
+        if abs(self.vec[1]) < 0.2:
             self.vec[1] = 0
+
+PARTICLE_GREY = coloredrect((4, 4), (60, 60, 60))
+class ShrapnelParticle(BaseParticle):
+    def __init__(self, *args, **kwargs):
+        BaseParticle.__init__(self, *args, **kwargs)
+        self.image = PARTICLE_GREY
+        self.damp = 0.01
 
 SMALLFONT = makefont(14)
 class TextParticle(Entity):
