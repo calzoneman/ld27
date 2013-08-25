@@ -63,6 +63,7 @@ if __name__ == "__main__":
     TWIDTH, THEIGHT = SWIDTH / Tile.SIZE, SHEIGHT / Tile.SIZE
     FLAGS = HWSURFACE | DOUBLEBUF
     screen = pygame.display.set_mode((SWIDTH, SHEIGHT), FLAGS)
+    pygame.display.set_caption("TimeRunner")
 
     regfont = makefont(20)
     WHITE = pygame.Color(255, 255, 255)
